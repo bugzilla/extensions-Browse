@@ -1,0 +1,12 @@
+
+  [% IF user.product_interests.size > 0 %]
+    <h3>Interested products</h3>
+
+    <ul>
+    [% FOREACH product = user.product_interests %]
+      <li><a href="browse.cgi?product=[% product.name FILTER uri %]">[% product.name
+           FILTER html %]</a></li>
+    [% END %]
+    </ul>
+  [% END %]
+

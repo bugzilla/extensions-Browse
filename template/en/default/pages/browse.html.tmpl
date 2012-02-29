@@ -1,0 +1,473 @@
+[%# The contents of this file are subject to the Mozilla Public
+  # License Version 1.1 (the "License"); you may not use this file
+  # except in compliance with the License. You may obtain a copy of
+  # the License at http://www.mozilla.org/MPL/
+  #
+  # Software distributed under the License is distributed on an "AS
+  # IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+  # implied. See the License for the specific language governing
+  # rights and limitations under the License.
+  #
+  # The Original Code is the Bugzilla Bug Tracking System.
+  #
+  # The Initial Developer of the Original Code is Netscape Communications
+  # Corporation. Portions created by Netscape are
+  # Copyright (C) 1998 Netscape Communications Corporation. All
+  # Rights Reserved.
+  #
+  # Contributor(s): Gervase Markham <gerv@gerv.net>
+  #                 Vaskin Kissoyan <vkissoyan@yahoo.com>
+  #                 Max Kanat-Alexander <mkanat@bugzilla.org>
+  #                 Frédéric Buclin <LpSolit@gmail.com>
+  #                 Olav Vitters <olav@bkor.dhs.org>
+  #                 Guy Pyrzak <guy.pyrzak@gmail.com>
+  #                 Elliotte Martin <emartin@everythingsolved.com>
+  #%]
+
+[% PROCESS global/variables.none.tmpl %]
+
+[% filtered_product = product.name FILTER html %]
+[% PROCESS global/header.html.tmpl
+  title = "Browse: $filtered_product"
+  h1 = ""
+  style_urls = [ "extensions/Browse/web/browse.css", "skins/standard/buglist.css" ]
+  javascript_urls = [ "extensions/Browse/web/browse.js" ]
+%]
+
+<div id="product_summary">
+  <h3>Project Summary</h3>
+
+  <table border="0" class="figures">
+
+  <tr>
+    <td>Total [% terms.Bugs %]</td>
+    <td align="right">
+      <a href="[% buglink FILTER html %]">
+        [%- total_open_bugs FILTER html %]</a>
+    </td>
+  </tr>
+
+  <tr>
+    <td>New [% terms.Bugs %]</td> 
+    <td align="right"><a href="[% buglink FILTER html %]&amp;chfield=[% "[Bug creation]" FILTER uri %]&amp;chfieldfrom=[% what_new_means FILTER html %]">
+    [% new_bugs FILTER html %]</a></li></td>
+  </tr>
+
+  <tr>
+    <td>New Patches</td>
+    <td align="right">
+      <a href="page.cgi?id=patchreport.html&amp;product=[%- product.name FILTER uri %]&amp;max_days=7">
+        [% new_patches FILTER html %]
+      </a>
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      <a class="boogle_edit" 
+         href="javascript:addText('keywords:gnome-love')">GNOME-love 
+        [%= terms.bugs %]</a>
+    </td>
+    <td align="right">
+      <!--
+      <a href="reports/keyword-search.cgi?product=
+               [%- product.name FILTER uri %]&amp;keyword=gnome-love">
+      -->
+        [%- gnome_love_bugs FILTER html %] <!-- </a> -->
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <!-- <a class="boogle_edit"
+               href="javascript:addText('severity!=enhancement');addText('responders:0');addText('reporter!=developer')"> -->
+      [% terms.Bugs %] without a response <!-- </a> -->
+    </td>
+    <td align="right">
+      <!-- <a href="buglist.cgi?quicksearch=product:
+              [%- product.name FILTER uri %]+responders:0+severity!=enhancement+reporter!=developer"> -->
+        [% no_response_bugs FILTER html %] <!-- </a> -->
+    </td>
+  </tr>
+  [%######################################################################
+    # Temporary time-limited queries; Please just comment these out when
+    # they are not in use if they will be needed again next release
+    # cycle.  Also, be sure to leave these in italics so that people can
+    # notice they are different than the standard list.
+    ######################################################################
+   %]
+  <tr>
+    <td>
+      <em><a class="boogle_edit" 
+             href="javascript:addText('+G_LOG_LEVEL_CRITICAL')">Critical 
+        warning [% terms.bugs %]</a></em>
+    </td>
+    <td align="right">
+      <em><a href="[% buglink FILTER html %]&amp;content=G_LOG_LEVEL_CRITICAL">
+        [%- critical_warning_bugs FILTER html %]</a></em>
+    </td>
+  </tr>
+  <!-- 
+  <tr>
+    <td><a class="boogle_edit" href="javascript:addText('keyword:string')">String [% terms.bugs %]</a></td>
+    <td align="right"><a href="[% buglink FILTER html %]&amp;keywords=string">[% string_bugs FILTER html %]</a></td>
+  </tr>
+  -->
+  [%######################################################################
+    # End of temporary, time-limited queries
+    ######################################################################
+   %]
+  </table>
+  
+  [% IF by_patch_status.size %]
+    <h3>Patch Status</h3>
+    <table border="0" cellpadding="0" cellspacing="0" class="figures">
+    [% FOREACH col = by_patch_status %]
+      <tr>
+        <td>
+          <!--
+          <a class="boogle_edit" 
+             href="javascript:addText('patch-status:[% col.0 FILTER js %]')"> -->
+          [% col.0 FILTER html %] <!-- </a> -->
+          [% IF col.0 == 'none' %] (unreviewed)[% END %]
+        </td>
+        <td align="right">
+          <a href="page.cgi?id=patchreport.html&amp;product=[%- product.name FILTER uri %]&amp;patch-status=[% col.0 FILTER uri %]">
+            [% col.1 FILTER html %]
+          </a>
+        </td>
+      </tr>
+    [% END %]
+    </table>
+  [% END %]
+  
+  [% IF by_priority.size %]
+    <h3>Priority</h3>
+    <table border="0" cellpadding="0" cellspacing="0" class="figures">
+    [% FOREACH col = by_priority %]
+      <tr>
+        <td>
+          <a class="boogle_edit" 
+             href="javascript:addText('priority:[% col.0 FILTER js %]')">
+            [%- col.0 FILTER html %]</a>
+        </td>
+        <td align="right">
+          <a href="[% buglink FILTER html %]&amp;priority=
+                   [%- col.0 FILTER uri %]">[% col.1 FILTER html %]</a>
+        </td>
+      </tr>
+    [% END %]
+    </table>
+  [% END %]
+  
+  [% IF by_severity.size %]
+    <h3>Severity</h3>
+    <table border="0" cellpadding="0" cellspacing="0" class="figures">
+    [% FOREACH col = by_severity %]
+      <tr>
+        <td>
+          <a class="boogle_edit" 
+             href="javascript:addText('severity:[% col.0 FILTER js %]')">
+            [%- col.0 FILTER html %]</a>
+        </td>
+        <td align="right">
+          <a href="[% buglink FILTER html %]&amp;bug_severity=
+                   [%- col.0 FILTER uri %]">[% col.1 FILTER html %]</a>
+        </td>
+      </tr>
+    [% END %]
+    </table>
+  [% END %]
+  
+  <h3>Useful links</h3>
+  <ul>
+    <li>
+      <a href="http://www.gnome.org/start/unstable">Development schedule</a>
+    </li>
+    <li>
+      <a href="http://live.gnome.org/MaintainersCorner">Maintainers corner</a>
+    </li>
+    <li> [% terms.Bugzilla %]
+      <ul>
+        [% IF user.id && user.in_group('editbugs') %]
+          <li>
+            <a href="enter_bug.cgi?product=
+                     [%- product.name FILTER uri %]">File a
+              [%= terms.bug %]</a>
+            <!-- (<a href="simple-bug-guide.cgi?product=[% product.name FILTER uri %]">simple form</a>) -->
+          </li>
+        [% ELSE %]
+          <li>
+            <!--
+            <a href="simple-bug-guide.cgi?product=
+                     [%- product.name FILTER uri %]">File a 
+              [%= terms.bug %]</a> -->
+            <a href="enter_bug.cgi?product=
+                     [%- product.name FILTER uri %]">File a 
+              [%= terms.bug %]</a>
+          </li>
+        [% END %]
+        [% IF user.in_group('editcomponents', product.id) %]
+          <li>
+            <a href="editproducts.cgi?action=edit&amp;product=
+                    [%- product.name FILTER uri %]">Edit this product</a>
+          </li>
+        [% ELSE %]
+          <li>
+            Show <a href="describecomponents.cgi?product=
+                          [%- product.name FILTER uri %]">component
+              descriptions</a>
+          </li>
+        [% END %]
+        <li> <a href="http://live.gnome.org/Bugsquad/TriageGuide/ProductSpecificGuidelines">Triaging guidelines</a></li>
+        <li> <a href="http://live.gnome.org/Bugsquad/ForMaintainers">Contacting bugmasters</a></li>
+      </ul>
+    </li>
+    <li> Product Info
+      <ul>
+        <li><a href="http://git.gnome.org/cgit/
+                     [%- product.name FILTER lower FILTER uri %]">GNOME Git</a></li>
+        <li>
+          [% IF product.milestone_url %]
+            <a href="[% product.milestone_url FILTER html %]">
+          [% ELSE %]
+            <a href="http://bugzilla.gnome.org/">
+          [% END %]
+          [% product.name FILTER html %] homepage</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<form action="browse.cgi" method="get">
+<h1>
+Browse:
+  <select name="product">
+    [% FOREACH c = classifications %]
+      <optgroup label="[% c.name FILTER html %]">
+        [% FOREACH p = c.products %]
+          <option value="[% p.name FILTER html %]" 
+            [% IF p.name == product.name && seen != 1 %]selected="selected"[% seen = 1 %]
+            [% END %]>
+          [% p.name FILTER html %]</option>
+      [% END %]</optgroup>
+    [% END %]
+  </select>
+  <input type="submit" value="Show product">
+</h1>
+</form>
+
+<p><i>[% product.description FILTER none %]</i></p>
+
+[% PROCESS gnomeblocker list = blockers_development  
+                        target = target_development %]
+[% PROCESS gnomeblocker list = blockers_stable
+                        target = target_stable %]
+
+<form class="boogleform" id="boogle_search" action="buglist.cgi" 
+      method="get">
+<div>
+  <p>Search for [% terms.bugs %] in [% product.name FILTER html %]: <br />
+  <input id="boogle_search_box" name="quicksearch" type="text" 
+         value="product:&quot;[% product.name.replace('\\[', '\[').replace('\\]', '\]').replace(':','\:') FILTER none %]&quot; "
+         size="50">
+  <input id="show" type="submit" value="Show">
+  <a href="page.cgi?id=quicksearch.html">[Help]</a>
+  </p>
+</div>
+</form>
+
+<script  type="text/javascript">
+<!--
+  var search_box = document.getElementById('boogle_search_box');
+  search_box.focus();
+  setCaretToEnd(search_box);
+-->
+</script>
+
+<table cellpadding="3" cellspacing="0">
+<tr>
+  <th>Components</th>
+  <td>&nbsp;</td>
+  <th>Versions</th>
+</tr>
+<tr>
+  <td valign="top">
+
+  <table border="0" cellpadding="0" cellspacing="0" class="figures">
+  [% FOREACH col = by_component %]
+    <tr>
+      <td>
+        <a class="boogle_edit" href="javascript:addText('component:[% col.0 FILTER js %]')">[% col.0 FILTER html %]</a>
+      </td>
+      <td align="right">
+        <a href="[% buglink FILTER html %]&amp;component=[% col.0 FILTER uri %]">[% col.1 FILTER html %]</a>
+      </td>
+    </tr>
+  [% END %]
+  </table>
+
+  </td>
+  <td>&nbsp;</td>
+  <td valign="top">
+
+  <table border="0" cellpadding="0" cellspacing="0" class="figures">
+  [% FOREACH col = by_version %]
+    <tr>
+      <td>
+        <a class="boogle_edit" href="javascript:addText('version:[% col.0 FILTER js %]')">[% col.0 FILTER html %]</a>
+      </td>
+      <td align="right">
+        <a href="[% buglink FILTER html %]&amp;version=[% col.0 FILTER uri %]">[% col.1 FILTER html %]</a>
+      </td>
+    </tr>
+  [% END %]
+  </table>
+
+  </td>
+</tr>
+</table>
+
+<table cellpadding="3" cellspacing="0">
+<tr>
+  <th>Milestones</th>
+  <td>&nbsp;</td>
+  <th>NEEDINFO by last changed</th>
+</tr>
+<tr>
+  <td valign="top">
+
+  <table border="0" cellpadding="0" cellspacing="0" class="figures">
+  [% FOREACH col = by_target %]
+    <tr>
+      <td>
+        <a class="boogle_edit" href="javascript:addText('target:[% col.0 FILTER js %]')">[% col.0 FILTER html %]</a>
+      </td>
+      <td align="right">
+        <a href="[% buglink FILTER html %]&amp;target_milestone=[% col.0 FILTER uri %]">[% col.1 FILTER html %]</a>
+      </td>
+    </tr>
+  [% END %]
+  </table>
+
+  </td>
+  <td>&nbsp;</td>
+  <td valign="top">
+
+  <table border="0" cellpadding="0" cellspacing="0" class="figures">
+  [% IF needinfo_split.F %]
+    <tr>
+      <td>&gt;= 1 year</a></td>
+      <td align="right"><a href="buglist.cgi?product=[% product.name FILTER uri %]&amp;bug_status=NEEDINFO&amp;chfieldfrom=&amp;chfieldto=-1y">
+      [% needinfo_split.F FILTER html %]</a></td>
+    </tr>
+  [% END %]
+  [% IF needinfo_split.E %]
+    <tr>
+      <td>6 months - 1 year</a></td>
+      <td align="right"><a href="buglist.cgi?product=[% product.name FILTER uri %]&amp;bug_status=NEEDINFO&amp;chfieldfrom=-1y&amp;chfieldto=-6m">
+      [% needinfo_split.E FILTER html %]</a></td>
+    </tr>
+  [% END %]
+  [% IF needinfo_split.D %]
+    <tr>
+      <td>3 months - 6 months</a></td>
+      <td align="right"><a href="buglist.cgi?product=[% product.name FILTER uri %]&amp;bug_status=NEEDINFO&amp;chfieldfrom=-6m&amp;chfieldto=-3m">
+      [% needinfo_split.D FILTER html %]</a></td>
+    </tr>
+  [% END %]
+  [% IF needinfo_split.C %]
+    <tr>
+      <td>4 weeks - 3 months</a></td>
+      <td align="right"><a href="buglist.cgi?product=[% product.name FILTER uri %]&amp;bug_status=NEEDINFO&amp;chfieldfrom=-3m&amp;chfieldto=-4w">
+      [% needinfo_split.C FILTER html %]</a></td>
+    </tr>
+  [% END %]
+  [% IF needinfo_split.B %]
+    <tr>
+      <td>2 weeks - 4 weeks</a></td>
+      <td align="right"><a href="buglist.cgi?product=[% product.name FILTER uri %]&amp;bug_status=NEEDINFO&amp;chfieldfrom=-4w&amp;chfieldto=-2w">
+      [% needinfo_split.B FILTER html %]</a></td>
+    </tr>
+  [% END %]
+  [% IF needinfo_split.A %]
+    <tr>
+      <td>&lt; 2 weeks ago</a></td>
+      <td align="right"><a href="buglist.cgi?product=[% product.name FILTER uri %]&amp;bug_status=NEEDINFO&amp;chfieldfrom=-2w&amp;chfieldto=">
+      [% needinfo_split.A FILTER html %]</a></td>
+    </tr>
+  [% END %]
+  </table>
+</table>
+
+<form class="fixedquery" name="fixedquery" action="buglist.cgi" method="get">
+<div>
+  <p>Find all [% terms.bugs %] marked as fixed since
+  <input name="product" type="hidden" value="[% product.name FILTER html %]">
+  <input name="bug_status" type="hidden" value="RESOLVED">
+  <input name="bug_status" type="hidden" value="VERIFIED">
+  <input name="resolution" type="hidden" value="FIXED">
+  <input name="chfield" type="hidden" value="resolution">
+  <input name="chfieldvalue" type="hidden" value="FIXED">
+  <input name="chfieldfrom" type="text" size="8" value="-7d">  (YYYY-MM-DD)
+  <input id="show" type="submit" value="Show">
+  </p>
+</div>
+</form>
+
+<h3>Developers</h3>
+[% IF product.developers.size > 0 %]
+  <table cellpadding="3" cellspacing="0">
+  [% FOREACH developer = product.developers.sort('name') %]
+    <tr>
+      <td>
+        [% IF user.id %]
+          [%# XXX - describeuser.cgi will come eventually so commenting out for now %]
+          <!-- <a href="describeuser.cgi?login=[% developer.login FILTER uri %]"> -->
+        [% END %]
+        [% PROCESS "global/user.html.tmpl" who = developer %]
+        [% IF user.id %]
+          <!-- </a> -->
+        [% END %]
+      </td>
+    </tr>
+  [% END %]
+  </table>
+[% ELSE %]
+  No users are marked as being developers of this project; please <a href="enter_bug.cgi?product=bugzilla.gnome.org">contact the bugmasters and let us know who to mark as such</a>.
+[% END %]
+
+[% BLOCK gnomeblocker %]
+  [% IF list.size %]
+    <table border="0" class="gnomeblocker" cellpadding="0" cellspacing="0">
+      <thead>
+      <tr>
+        <td colspan="5">Blocker [% terms.bugs %]: 
+          <b> <a class="boogle_edit"
+          href="javascript:addText('cf_gnome_target:
+               [%- target FILTER js %]')">
+            GNOME [% target FILTER html %]</a></b>
+          (these must be fixed before/in the specified GNOME version)
+        </td>
+      </tr>
+      </thead>
+      [% FOREACH bug = list %]
+        <tr class="[%+ IF loop.count() % 2 == 0 %]bz_row_even[% ELSE %]bz_row_odd[% END %]">
+          <td align="center">
+            <a href="show_bug.cgi?id=[% bug.bug_id FILTER uri %]">[% bug.bug_id FILTER html %]</a>
+          </td>
+          <td>
+            <a href="[% buglink FILTER html %]&amp;gnome_target=[% target FILTER uri %]">[% bug.product FILTER html %]</a>
+          </td>
+          <td align="center">[% bug.bug_status.truncate(4) FILTER html %]</td>
+          <td align="center">[% bug.bug_severity.truncate(3) FILTER html %]</td>
+          <td>
+            <a href="show_bug.cgi?id=[% bug.bug_id FILTER uri %]">[% bug.short_desc.truncate(70, '...') FILTER html %]</a>
+          </td>
+        </tr>
+      [% END %]
+    </table>
+  [% END %]
+[% END %]
+
+[% PROCESS global/footer.html.tmpl %]
